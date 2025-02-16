@@ -3,192 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maravillas del Universo: Un Viaje por la Astronomía</title>
+    <title>Esquiva los Asteroides - Juego 3D</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(to bottom, #1a1a2e, #16213e);
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-            padding: 20px;
-        }
-        header {
-            background: #0f3460;
-            color: #fff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #e94560 3px solid;
-        }
-        header h1 {
-            margin: 0;
-            text-align: center;
-            font-size: 2.5em;
-        }
-        nav {
-            background: #16213e;
-            padding: 15px 0;
-        }
-        nav ul {
-            padding: 0;
-            list-style: none;
-            text-align: center;
-        }
-        nav li {
-            display: inline;
-            margin: 0 10px;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 18px;
-            transition: color 0.3s ease;
-        }
-        nav a:hover {
-            color: #e94560;
-        }
-        .hero {
-            background: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center/cover;
-            height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-        }
-        .hero-content {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .hero h2 {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        .btn {
-            display: inline-block;
-            background: #e94560;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 18px;
-            transition: background 0.3s ease;
-        }
-        .btn:hover {
-            background: #c13e54;
-        }
-        .content-section {
-            background: #fff;
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .content-section h3 {
-            color: #0f3460;
-        }
-        .planet-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .planet-card {
-            background: #f4f4f4;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        .planet-card:hover {
-            transform: translateY(-5px);
-        }
-        .planet-card img {
-            width: 100%;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-        footer {
-            background: #0f3460;
-            color: #fff;
-            text-align: center;
-            padding: 20px 0;
-            margin-top: 20px;
-        }
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #info { position: absolute; top: 10px; width: 100%; color: white; text-align: center; z-index: 100; }
+        #score { position: absolute; top: 40px; width: 100%; color: white; text-align: center; z-index: 100; font-size: 24px; }
+        #gameOver { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 100; display: none; }
+        #startButton { font-size: 20px; padding: 10px 20px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Maravillas del Universo</h1>
-        </div>
-    </header>
-
-    <nav>
-        <ul>
-            <li><a href="#inicio">Inicio</a></li>
-            <li><a href="#planetas">Planetas</a></li>
-            <li><a href="#galaxias">Galaxias</a></li>
-            <li><a href="#contacto">Contacto</a></li>
-        </ul>
-    </nav>
-
-    <section class="hero" id="inicio">
-        <div class="hero-content">
-            <h2>Explora el Cosmos</h2>
-            <p>Embárcate en un viaje fascinante a través del espacio y el tiempo.</p>
-            <a href="#planetas" class="btn">Descubre Más</a>
-        </div>
-    </section>
-
-    <div class="container">
-        <section class="content-section" id="planetas">
-            <h3>Nuestro Sistema Solar</h3>
-            <p>El sistema solar es un conjunto fascinante de planetas, lunas, asteroides y cometas que orbitan alrededor de nuestra estrella, el Sol. Cada planeta tiene características únicas que lo hacen especial.</p>
-            <div class="planet-grid">
-                <div class="planet-card">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Mercury_in_color_-_Prockter07_centered.jpg/600px-Mercury_in_color_-_Prockter07_centered.jpg" alt="Mercurio">
-                    <h4>Mercurio</h4>
-                    <p>El planeta más pequeño y cercano al Sol.</p>
-                </div>
-                <div class="planet-card">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Venus-real_color.jpg/600px-Venus-real_color.jpg" alt="Venus">
-                    <h4>Venus</h4>
-                    <p>Conocido como el "gemelo" de la Tierra por su tamaño similar.</p>
-                </div>
-                <div class="planet-card">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/600px-The_Earth_seen_from_Apollo_17.jpg" alt="Tierra">
-                    <h4>Tierra</h4>
-                    <p>Nuestro hogar, el único planeta conocido con vida.</p>
-                </div>
-                <div class="planet-card">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/600px-OSIRIS_Mars_true_color.jpg" alt="Marte">
-                    <h4>Marte</h4>
-                    <p>El "planeta rojo", objetivo de futuras misiones humanas.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="content-section" id="galaxias">
-            <h3>Más Allá de Nuestro Sistema Solar</h3>
-            <p>El universo está lleno de galaxias, cada una conteniendo miles de millones de estrellas. Nuestra galaxia, la Vía Láctea, es solo una entre las innumerables maravillas cósmicas que existen en el vasto espacio.</p>
-            <p>Los astrónomos continúan descubriendo nuevos planetas, estrellas y fenómenos cósmicos, expandiendo constantemente nuestro conocimiento del universo. Desde los agujeros negros supermasivos en el centro de las galaxias hasta las nebulosas donde nacen nuevas estrellas, el cosmos está lleno de misterios por explorar.</p>
-        </section>
+    <div id="info">Usa las teclas de flecha para mover la nave. Evita los asteroides.</div>
+    <div id="score">Puntuación: 0</div>
+    <div id="gameOver">
+        <h1>¡Juego Terminado!</h1>
+        <p>Tu puntuación final: <span id="finalScore"></span></p>
+        <button id="startButton">Reiniciar Juego</button>
     </div>
 
-    <footer id="contacto">
-        <div class="container">
-            <p>&copy; 2023 Maravillas del Universo. Todos los derechos reservados.</p>
-            <p>Contacto: info@maravillasdel universo.com</p>
-        </div>
-    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, ship, asteroids = [], score = 0;
+        let gameActive = false;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Luz
+            const light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(0, 0, 10);
+            scene.add(light);
+
+            // Nave espacial
+            const shipGeometry = new THREE.ConeGeometry(0.5, 1, 32);
+            const shipMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+            ship = new THREE.Mesh(shipGeometry, shipMaterial);
+            ship.position.z = -5;
+            scene.add(ship);
+
+            camera.position.z = 5;
+
+            // Fondo estelar
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+            const starVertices = [];
+            for (let i = 0; i < 10000; i++) {
+                const x = (Math.random() - 0.5) * 2000;
+                const y = (Math.random() - 0.5) * 2000;
+                const z = -Math.random() * 2000;
+                starVertices.push(x, y, z);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', onKeyDown, false);
+        }
+
+        function createAsteroid() {
+            const geometry = new THREE.SphereGeometry(Math.random() * 0.5 + 0.1, 32, 32);
+            const material = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+            const asteroid = new THREE.Mesh(geometry, material);
+            asteroid.position.set(
+                Math.random() * 10 - 5,
+                Math.random() * 10 - 5,
+                -20
+            );
+            asteroid.velocity = Math.random() * 0.1 + 0.05;
+            scene.add(asteroid);
+            asteroids.push(asteroid);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onKeyDown(event) {
+            if (!gameActive) return;
+            const speed = 0.2;
+            switch (event.keyCode) {
+                case 37: // izquierda
+                    ship.position.x -= speed;
+                    break;
+                case 39: // derecha
+                    ship.position.x += speed;
+                    break;
+                case 38: // arriba
+                    ship.position.y += speed;
+                    break;
+                case 40: // abajo
+                    ship.position.y -= speed;
+                    break;
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (gameActive) {
+                if (Math.random() < 0.02) createAsteroid();
+
+                asteroids.forEach((asteroid, index) => {
+                    asteroid.position.z += asteroid.velocity;
+                    if (asteroid.position.z > 0) {
+                        scene.remove(asteroid);
+                        asteroids.splice(index, 1);
+                        score++;
+                        document.getElementById('score').textContent = `Puntuación: ${score}`;
+                    }
+                    if (ship.position.distanceTo(asteroid.position) < 0.5) {
+                        gameOver();
+                    }
+                });
+
+                ship.rotation.z += 0.01;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('finalScore').textContent = score;
+        }
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            document.getElementById('score').textContent = 'Puntuación: 0';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Reiniciar posición de la nave
+            ship.position.set(0, 0, -5);
+
+            // Eliminar asteroides existentes
+            asteroids.forEach(asteroid => scene.remove(asteroid));
+            asteroids = [];
+        }
+
+        init();
+        animate();
+
+        document.getElementById('startButton').addEventListener('click', startGame);
+    </script>
 </body>
 </html>
