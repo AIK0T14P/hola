@@ -1,158 +1,260 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Esquiva los Asteroides - Juego 3D</title>
-    <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-        #info { position: absolute; top: 10px; width: 100%; color: white; text-align: center; z-index: 100; }
-        #score { position: absolute; top: 40px; width: 100%; color: white; text-align: center; z-index: 100; font-size: 24px; }
-        #gameOver { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 100; display: none; }
-        #startButton { font-size: 20px; padding: 10px 20px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <div id="info">Usa las teclas de flecha para mover la nave. Evita los asteroides.</div>
-    <div id="score">Puntuación: 0</div>
-    <div id="gameOver">
-        <h1>¡Juego Terminado!</h1>
-        <p>Tu puntuación final: <span id="finalScore"></span></p>
-        <button id="startButton">Reiniciar Juego</button>
+"use client"
+
+import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
+import { Slider } from "@/components/ui/slider"
+import { AlertCircle, CheckCircle2, Copy, Key, Lock, Unlock } from 'lucide-react'
+import CryptoJS from 'crypto-js'
+
+const algorithms = {
+  caesar: {
+    encrypt: (text: string, key: number) => {
+      return text.split('').map(char => {
+        if (char.match(/[a-z]/i)) {
+          const code = char.charCodeAt(0);
+          const shift = key % 26;
+          const base = char.toLowerCase() === char ? 97 : 65;
+          return String.fromCharCode(((code - base + shift) % 26) + base);
+        }
+        return char;
+      }).join('');
+    },
+    decrypt: (text: string, key: number) => {
+      return algorithms.caesar.encrypt(text, 26 - (key % 26));
+    }
+  },
+  vigenere: {
+    encrypt: (text: string, key: string) => {
+      let result = '';
+      let keyIndex = 0;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char.match(/[a-z]/i)) {
+          const textCode = char.charCodeAt(0);
+          const keyChar = key[keyIndex % key.length].toUpperCase();
+          const keyCode = keyChar.charCodeAt(0) - 65;
+          const base = char.toLowerCase() === char ? 97 : 65;
+          result += String.fromCharCode(((textCode - base + keyCode) % 26) + base);
+          keyIndex++;
+        } else {
+          result += char;
+        }
+      }
+      return result;
+    },
+    decrypt: (text: string, key: string) => {
+      let result = '';
+      let keyIndex = 0;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char.match(/[a-z]/i)) {
+          const textCode = char.charCodeAt(0);
+          const keyChar = key[keyIndex % key.length].toUpperCase();
+          const keyCode = keyChar.charCodeAt(0) - 65;
+          const base = char.toLowerCase() === char ? 97 : 65;
+          result += String.fromCharCode(((textCode - base - keyCode + 26) % 26) + base);
+          keyIndex++;
+        } else {
+          result += char;
+        }
+      }
+      return result;
+    }
+  },
+  aes: {
+    encrypt: (text: string, key: string) => {
+      return CryptoJS.AES.encrypt(text, key).toString();
+    },
+    decrypt: (text: string, key: string) => {
+      const bytes = CryptoJS.AES.decrypt(text, key);
+      return bytes.toString(CryptoJS.enc.Utf8);
+    }
+  }
+};
+
+export default function Home() {
+  const [algorithm, setAlgorithm] = useState('caesar')
+  const [input, setInput] = useState('')
+  const [key, setKey] = useState('')
+  const [result, setResult] = useState('')
+  const [mode, setMode] = useState('encrypt')
+  const [strength, setStrength] = useState(0)
+  const [darkMode, setDarkMode] = useState(false)
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [darkMode])
+
+  useEffect(() => {
+    updateStrengthMeter()
+  }, [key])
+
+  const handleProcess = () => {
+    try {
+      const selectedAlgorithm = algorithms[algorithm as keyof typeof algorithms];
+      const processedText = mode === 'encrypt' 
+        ? selectedAlgorithm.encrypt(input, algorithm === 'caesar' ? parseInt(key) : key)
+        : selectedAlgorithm.decrypt(input, algorithm === 'caesar' ? parseInt(key) : key);
+      setResult(processedText);
+    } catch (error) {
+      setResult('Error: Invalid input or key');
+    }
+  }
+
+  const generateKey = () => {
+    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+    let generatedKey = "";
+    for (let i = 0; i < 16; i++) {
+      generatedKey += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    setKey(generatedKey);
+  }
+
+  const updateStrengthMeter = () => {
+    let strength = 0;
+    if (key.length >= 8) strength += 25;
+    if (key.match(/[a-z]/) && key.match(/[A-Z]/)) strength += 25;
+    if (key.match(/\d/)) strength += 25;
+    if (key.match(/[^a-zA-Z\d]/)) strength += 25;
+    setStrength(strength);
+  }
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(result);
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-4 transition-colors duration-200">
+      <Card className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-xl">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-3xl font-bold text-primary">CryptoMaster</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="dark-mode">Dark Mode</Label>
+              <Switch
+                id="dark-mode"
+                checked={darkMode}
+                onCheckedChange={setDarkMode}
+              />
+            </div>
+          </div>
+          <CardDescription>Sistema Avanzado de Cifrado</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="algorithm">Algoritmo de Cifrado</Label>
+            <Select value={algorithm} onValueChange={setAlgorithm}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un algoritmo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="caesar">César</SelectItem>
+                <SelectItem value="vigenere">Vigenère</SelectItem>
+                <SelectItem value="aes">AES</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="input">Texto a procesar</Label>
+            <Textarea
+              id="input"
+              placeholder="Ingresa el texto aquí"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="key">Clave</Label>
+            <div className="flex space-x-2">
+              <Input
+                id="key"
+                type={algorithm === 'caesar' ? 'number' : 'password'}
+                placeholder="Ingresa la clave"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+              />
+              <Button onClick={generateKey} variant="outline">
+                <Key className="mr-2 h-4 w-4" />
+                Generar Clave
+              </Button>
+            </div>
+            {algorithm !== 'caesar' && (
+              <div className="mt-2">
+                <Label>Fortaleza de la clave</Label>
+                <Slider
+                  value={[strength]}
+                  max={100}
+                  step={1}
+                  className="mt-2"
+                  disabled
+                />
+                <div className="flex justify-between text-xs mt-1">
+                  <span>Débil</span>
+                  <span>Fuerte</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <Tabs value={mode} onValueChange={setMode} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="encrypt">Cifrar</TabsTrigger>
+              <TabsTrigger value="decrypt">Descifrar</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button onClick={handleProcess} className="w-full">
+            {mode === 'encrypt' ? <Lock className="mr-2 h-4 w-4" /> : <Unlock className="mr-2 h-4 w-4" />}
+            {mode === 'encrypt' ? 'Cifrar' : 'Descifrar'}
+          </Button>
+        </CardFooter>
+      </Card>
+      {result && (
+        <Card className="mt-6 max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Resultado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md relative">
+              <pre className="whitespace-pre-wrap break-words">{result}</pre>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={copyToClipboard}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <div className="flex items-center space-x-2">
+              {mode === 'encrypt' ? (
+                <>
+                  <CheckCircle2 className="text-green-500 h-5 w-5" />
+                  <span>Texto cifrado con éxito</span>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="text-yellow-500 h-5 w-5" />
+                  <span>Texto descifrado (verifique la exactitud)</span>
+                </>
+              )}
+            </div>
+          </CardFooter>
+        </Card>
+      )}
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        let scene, camera, renderer, ship, asteroids = [], score = 0;
-        let gameActive = false;
-
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            // Luz
-            const light = new THREE.PointLight(0xffffff, 1, 100);
-            light.position.set(0, 0, 10);
-            scene.add(light);
-
-            // Nave espacial
-            const shipGeometry = new THREE.ConeGeometry(0.5, 1, 32);
-            const shipMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-            ship = new THREE.Mesh(shipGeometry, shipMaterial);
-            ship.position.z = -5;
-            scene.add(ship);
-
-            camera.position.z = 5;
-
-            // Fondo estelar
-            const starGeometry = new THREE.BufferGeometry();
-            const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
-            const starVertices = [];
-            for (let i = 0; i < 10000; i++) {
-                const x = (Math.random() - 0.5) * 2000;
-                const y = (Math.random() - 0.5) * 2000;
-                const z = -Math.random() * 2000;
-                starVertices.push(x, y, z);
-            }
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-            const stars = new THREE.Points(starGeometry, starMaterial);
-            scene.add(stars);
-
-            window.addEventListener('resize', onWindowResize, false);
-            document.addEventListener('keydown', onKeyDown, false);
-        }
-
-        function createAsteroid() {
-            const geometry = new THREE.SphereGeometry(Math.random() * 0.5 + 0.1, 32, 32);
-            const material = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
-            const asteroid = new THREE.Mesh(geometry, material);
-            asteroid.position.set(
-                Math.random() * 10 - 5,
-                Math.random() * 10 - 5,
-                -20
-            );
-            asteroid.velocity = Math.random() * 0.1 + 0.05;
-            scene.add(asteroid);
-            asteroids.push(asteroid);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function onKeyDown(event) {
-            if (!gameActive) return;
-            const speed = 0.2;
-            switch (event.keyCode) {
-                case 37: // izquierda
-                    ship.position.x -= speed;
-                    break;
-                case 39: // derecha
-                    ship.position.x += speed;
-                    break;
-                case 38: // arriba
-                    ship.position.y += speed;
-                    break;
-                case 40: // abajo
-                    ship.position.y -= speed;
-                    break;
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (gameActive) {
-                if (Math.random() < 0.02) createAsteroid();
-
-                asteroids.forEach((asteroid, index) => {
-                    asteroid.position.z += asteroid.velocity;
-                    if (asteroid.position.z > 0) {
-                        scene.remove(asteroid);
-                        asteroids.splice(index, 1);
-                        score++;
-                        document.getElementById('score').textContent = `Puntuación: ${score}`;
-                    }
-                    if (ship.position.distanceTo(asteroid.position) < 0.5) {
-                        gameOver();
-                    }
-                });
-
-                ship.rotation.z += 0.01;
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        function gameOver() {
-            gameActive = false;
-            document.getElementById('gameOver').style.display = 'block';
-            document.getElementById('finalScore').textContent = score;
-        }
-
-        function startGame() {
-            gameActive = true;
-            score = 0;
-            document.getElementById('score').textContent = 'Puntuación: 0';
-            document.getElementById('gameOver').style.display = 'none';
-            
-            // Reiniciar posición de la nave
-            ship.position.set(0, 0, -5);
-
-            // Eliminar asteroides existentes
-            asteroids.forEach(asteroid => scene.remove(asteroid));
-            asteroids = [];
-        }
-
-        init();
-        animate();
-
-        document.getElementById('startButton').addEventListener('click', startGame);
-    </script>
-</body>
-</html>
+  )
+}
