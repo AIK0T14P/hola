@@ -1,260 +1,438 @@
-"use client"
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoMaster - Sistema de Cifrado</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import { Slider } from "@/components/ui/slider"
-import { AlertCircle, CheckCircle2, Copy, Key, Lock, Unlock } from 'lucide-react'
-import CryptoJS from 'crypto-js'
-
-const algorithms = {
-  caesar: {
-    encrypt: (text: string, key: number) => {
-      return text.split('').map(char => {
-        if (char.match(/[a-z]/i)) {
-          const code = char.charCodeAt(0);
-          const shift = key % 26;
-          const base = char.toLowerCase() === char ? 97 : 65;
-          return String.fromCharCode(((code - base + shift) % 26) + base);
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --foreground: #0f172a;
+            --card: #ffffff;
+            --card-foreground: #0f172a;
+            --border: #e2e8f0;
+            --input: #f1f5f9;
+            --ring: #3b82f6;
+            --radius: 0.75rem;
         }
-        return char;
-      }).join('');
-    },
-    decrypt: (text: string, key: number) => {
-      return algorithms.caesar.encrypt(text, 26 - (key % 26));
-    }
-  },
-  vigenere: {
-    encrypt: (text: string, key: string) => {
-      let result = '';
-      let keyIndex = 0;
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char.match(/[a-z]/i)) {
-          const textCode = char.charCodeAt(0);
-          const keyChar = key[keyIndex % key.length].toUpperCase();
-          const keyCode = keyChar.charCodeAt(0) - 65;
-          const base = char.toLowerCase() === char ? 97 : 65;
-          result += String.fromCharCode(((textCode - base + keyCode) % 26) + base);
-          keyIndex++;
-        } else {
-          result += char;
+
+        .dark {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --background: #0f172a;
+            --foreground: #f8fafc;
+            --card: #1e293b;
+            --card-foreground: #f8fafc;
+            --border: #334155;
+            --input: #1e293b;
+            --ring: #3b82f6;
         }
-      }
-      return result;
-    },
-    decrypt: (text: string, key: string) => {
-      let result = '';
-      let keyIndex = 0;
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char.match(/[a-z]/i)) {
-          const textCode = char.charCodeAt(0);
-          const keyChar = key[keyIndex % key.length].toUpperCase();
-          const keyCode = keyChar.charCodeAt(0) - 65;
-          const base = char.toLowerCase() === char ? 97 : 65;
-          result += String.fromCharCode(((textCode - base - keyCode + 26) % 26) + base);
-          keyIndex++;
-        } else {
-          result += char;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
-      }
-      return result;
-    }
-  },
-  aes: {
-    encrypt: (text: string, key: string) => {
-      return CryptoJS.AES.encrypt(text, key).toString();
-    },
-    decrypt: (text: string, key: string) => {
-      const bytes = CryptoJS.AES.decrypt(text, key);
-      return bytes.toString(CryptoJS.enc.Utf8);
-    }
-  }
-};
 
-export default function Home() {
-  const [algorithm, setAlgorithm] = useState('caesar')
-  const [input, setInput] = useState('')
-  const [key, setKey] = useState('')
-  const [result, setResult] = useState('')
-  const [mode, setMode] = useState('encrypt')
-  const [strength, setStrength] = useState(0)
-  const [darkMode, setDarkMode] = useState(false)
+        body {
+            background: var(--background);
+            color: var(--foreground);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [darkMode])
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
 
-  useEffect(() => {
-    updateStrengthMeter()
-  }, [key])
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
 
-  const handleProcess = () => {
-    try {
-      const selectedAlgorithm = algorithms[algorithm as keyof typeof algorithms];
-      const processedText = mode === 'encrypt' 
-        ? selectedAlgorithm.encrypt(input, algorithm === 'caesar' ? parseInt(key) : key)
-        : selectedAlgorithm.decrypt(input, algorithm === 'caesar' ? parseInt(key) : key);
-      setResult(processedText);
-    } catch (error) {
-      setResult('Error: Invalid input or key');
-    }
-  }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
 
-  const generateKey = () => {
-    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
-    let generatedKey = "";
-    for (let i = 0; i < 16; i++) {
-      generatedKey += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    setKey(generatedKey);
-  }
+        .title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
 
-  const updateStrengthMeter = () => {
-    let strength = 0;
-    if (key.length >= 8) strength += 25;
-    if (key.match(/[a-z]/) && key.match(/[A-Z]/)) strength += 25;
-    if (key.match(/\d/)) strength += 25;
-    if (key.match(/[^a-zA-Z\d]/)) strength += 25;
-    setStrength(strength);
-  }
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            color: var(--foreground);
+        }
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(result);
-  }
+        .input-group {
+            margin-bottom: 1rem;
+        }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-4 transition-colors duration-200">
-      <Card className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-xl">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-3xl font-bold text-primary">CryptoMaster</CardTitle>
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="dark-mode">Dark Mode</Label>
-              <Switch
-                id="dark-mode"
-                checked={darkMode}
-                onCheckedChange={setDarkMode}
-              />
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--foreground);
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            background: var(--input);
+            color: var(--foreground);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 2px var(--ring);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button.secondary {
+            background: var(--input);
+            color: var(--foreground);
+        }
+
+        button.secondary:hover {
+            background: var(--border);
+        }
+
+        .strength-meter {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .strength-meter div {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+        }
+
+        .result {
+            background: var(--input);
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-top: 1rem;
+            position: relative;
+            word-break: break-all;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+
+        .copy-button:hover {
+            background: var(--input);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            background: var(--input);
+            padding: 0.25rem;
+            border-radius: var(--radius);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: calc(var(--radius) - 0.25rem);
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            background: var(--card);
+            font-weight: 500;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                margin: 1rem;
+                padding: 0;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1 class="title">CryptoMaster</h1>
+                <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
             </div>
-          </div>
-          <CardDescription>Sistema Avanzado de Cifrado</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="algorithm">Algoritmo de Cifrado</Label>
-            <Select value={algorithm} onValueChange={setAlgorithm}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona un algoritmo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="caesar">César</SelectItem>
-                <SelectItem value="vigenere">Vigenère</SelectItem>
-                <SelectItem value="aes">AES</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="input">Texto a procesar</Label>
-            <Textarea
-              id="input"
-              placeholder="Ingresa el texto aquí"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="key">Clave</Label>
-            <div className="flex space-x-2">
-              <Input
-                id="key"
-                type={algorithm === 'caesar' ? 'number' : 'password'}
-                placeholder="Ingresa la clave"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-              />
-              <Button onClick={generateKey} variant="outline">
-                <Key className="mr-2 h-4 w-4" />
-                Generar Clave
-              </Button>
+
+            <div class="tabs">
+                <div class="tab active" onclick="setTab('encrypt')" id="encryptTab">Cifrar</div>
+                <div class="tab" onclick="setTab('decrypt')" id="decryptTab">Descifrar</div>
             </div>
-            {algorithm !== 'caesar' && (
-              <div className="mt-2">
-                <Label>Fortaleza de la clave</Label>
-                <Slider
-                  value={[strength]}
-                  max={100}
-                  step={1}
-                  className="mt-2"
-                  disabled
-                />
-                <div className="flex justify-between text-xs mt-1">
-                  <span>Débil</span>
-                  <span>Fuerte</span>
+
+            <div class="input-group">
+                <label for="algorithm">Algoritmo de Cifrado</label>
+                <select id="algorithm" onchange="handleAlgorithmChange()">
+                    <option value="caesar">César</option>
+                    <option value="vigenere">Vigenère</option>
+                    <option value="aes">AES</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="input">Texto a procesar</label>
+                <textarea id="input" rows="4" placeholder="Ingresa el texto aquí"></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="key">Clave</label>
+                <input type="text" id="key" placeholder="Ingresa la clave">
+                <div class="strength-meter">
+                    <div id="strengthMeter"></div>
                 </div>
-              </div>
-            )}
-          </div>
-          <Tabs value={mode} onValueChange={setMode} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="encrypt">Cifrar</TabsTrigger>
-              <TabsTrigger value="decrypt">Descifrar</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button onClick={handleProcess} className="w-full">
-            {mode === 'encrypt' ? <Lock className="mr-2 h-4 w-4" /> : <Unlock className="mr-2 h-4 w-4" />}
-            {mode === 'encrypt' ? 'Cifrar' : 'Descifrar'}
-          </Button>
-        </CardFooter>
-      </Card>
-      {result && (
-        <Card className="mt-6 max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Resultado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md relative">
-              <pre className="whitespace-pre-wrap break-words">{result}</pre>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2"
-                onClick={copyToClipboard}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
             </div>
-          </CardContent>
-          <CardFooter>
-            <div className="flex items-center space-x-2">
-              {mode === 'encrypt' ? (
-                <>
-                  <CheckCircle2 className="text-green-500 h-5 w-5" />
-                  <span>Texto cifrado con éxito</span>
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="text-yellow-500 h-5 w-5" />
-                  <span>Texto descifrado (verifique la exactitud)</span>
-                </>
-              )}
+
+            <div class="button-group">
+                <button onclick="handleProcess()" id="processButton">Cifrar</button>
+                <button class="secondary" onclick="generateKey()">Generar Clave</button>
             </div>
-          </CardFooter>
-        </Card>
-      )}
+
+            <div id="resultContainer" style="display: none;">
+                <label>Resultado:</label>
+                <div class="result">
+                    <span id="result"></span>
+                    <button class="copy-button" onclick="copyToClipboard()">📋</button>
+                </div>
+            </div>
+        </div>
     </div>
-  )
-}
+
+    <script>
+        const algorithms = {
+            caesar: {
+                encrypt: (text, key) => {
+                    return text.split('').map(char => {
+                        if (char.match(/[a-z]/i)) {
+                            const code = char.charCodeAt(0);
+                            const shift = parseInt(key) % 26;
+                            const base = char.toLowerCase() === char ? 97 : 65;
+                            return String.fromCharCode(((code - base + shift) % 26) + base);
+                        }
+                        return char;
+                    }).join('');
+                },
+                decrypt: (text, key) => {
+                    return algorithms.caesar.encrypt(text, 26 - (parseInt(key) % 26));
+                }
+            },
+            vigenere: {
+                encrypt: (text, key) => {
+                    let result = '';
+                    let keyIndex = 0;
+                    for (let i = 0; i < text.length; i++) {
+                        const char = text[i];
+                        if (char.match(/[a-z]/i)) {
+                            const textCode = char.charCodeAt(0);
+                            const keyChar = key[keyIndex % key.length].toUpperCase();
+                            const keyCode = keyChar.charCodeAt(0) - 65;
+                            const base = char.toLowerCase() === char ? 97 : 65;
+                            result += String.fromCharCode(((textCode - base + keyCode) % 26) + base);
+                            keyIndex++;
+                        } else {
+                            result += char;
+                        }
+                    }
+                    return result;
+                },
+                decrypt: (text, key) => {
+                    let result = '';
+                    let keyIndex = 0;
+                    for (let i = 0; i < text.length; i++) {
+                        const char = text[i];
+                        if (char.match(/[a-z]/i)) {
+                            const textCode = char.charCodeAt(0);
+                            const keyChar = key[keyIndex % key.length].toUpperCase();
+                            const keyCode = keyChar.charCodeAt(0) - 65;
+                            const base = char.toLowerCase() === char ? 97 : 65;
+                            result += String.fromCharCode(((textCode - base - keyCode + 26) % 26) + base);
+                            keyIndex++;
+                        } else {
+                            result += char;
+                        }
+                    }
+                    return result;
+                }
+            },
+            aes: {
+                encrypt: (text, key) => {
+                    try {
+                        return btoa(text.split('').map(char => 
+                            String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(0))
+                        ).join(''));
+                    } catch (e) {
+                        return 'Error: Texto inválido';
+                    }
+                },
+                decrypt: (text, key) => {
+                    try {
+                        return atob(text).split('').map(char =>
+                            String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(0))
+                        ).join('');
+                    } catch (e) {
+                        return 'Error: Texto cifrado inválido';
+                    }
+                }
+            }
+        };
+
+        let currentMode = 'encrypt';
+
+        function setTab(mode) {
+            currentMode = mode;
+            document.getElementById('encryptTab').classList.toggle('active', mode === 'encrypt');
+            document.getElementById('decryptTab').classList.toggle('active', mode === 'decrypt');
+            document.getElementById('processButton').textContent = mode === 'encrypt' ? 'Cifrar' : 'Descifrar';
+        }
+
+        function handleAlgorithmChange() {
+            const algorithm = document.getElementById('algorithm').value;
+            const keyInput = document.getElementById('key');
+            keyInput.type = algorithm === 'caesar' ? 'number' : 'text';
+            if (algorithm === 'caesar') {
+                keyInput.value = '3';
+            }
+            updateStrengthMeter();
+        }
+
+        function handleProcess() {
+            const algorithm = document.getElementById('algorithm').value;
+            const input = document.getElementById('input').value;
+            const key = document.getElementById('key').value;
+            
+            if (!input || !key) {
+                alert('Por favor, completa todos los campos');
+                return;
+            }
+
+            const selectedAlgorithm = algorithms[algorithm];
+            const result = currentMode === 'encrypt' 
+                ? selectedAlgorithm.encrypt(input, key)
+                : selectedAlgorithm.decrypt(input, key);
+
+            document.getElementById('result').textContent = result;
+            document.getElementById('resultContainer').style.display = 'block';
+        }
+
+        function generateKey() {
+            const algorithm = document.getElementById('algorithm').value;
+            if (algorithm === 'caesar') {
+                document.getElementById('key').value = Math.floor(Math.random() * 25) + 1;
+            } else {
+                const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+                let key = "";
+                for (let i = 0; i < 16; i++) {
+                    key += charset.charAt(Math.floor(Math.random() * charset.length));
+                }
+                document.getElementById('key').value = key;
+            }
+            updateStrengthMeter();
+        }
+
+        function updateStrengthMeter() {
+            const key = document.getElementById('key').value;
+            const algorithm = document.getElementById('algorithm').value;
+            const meter = document.getElementById('strengthMeter');
+
+            if (algorithm === 'caesar') {
+                meter.style.width = '100%';
+                meter.style.backgroundColor = '#22c55e';
+                return;
+            }
+
+            let strength = 0;
+            if (key.length >= 8) strength += 25;
+            if (key.match(/[a-z]/) && key.match(/[A-Z]/)) strength += 25;
+            if (key.match(/\d/)) strength += 25;
+            if (key.match(/[^a-zA-Z\d]/)) strength += 25;
+
+            meter.style.width = strength + '%';
+            meter.style.backgroundColor = 
+                strength < 33 ? '#ef4444' :
+                strength < 66 ? '#f59e0b' : '#22c55e';
+        }
+
+        function copyToClipboard() {
+            const result = document.getElementById('result').textContent;
+            navigator.clipboard.writeText(result);
+            alert('Copiado al portapapeles');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+
+        // Inicialización
+        document.getElementById('key').addEventListener('input', updateStrengthMeter);
+        handleAlgorithmChange();
+    </script>
+</body>
+</html>
